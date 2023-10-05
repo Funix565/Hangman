@@ -9,14 +9,17 @@ namespace Hangman
     public class Game
     {
         // TODO: Field initialization or in constructor?
+        // -- Doesn't matter: https://stackoverflow.com/a/24558
         private string _word = "";
-        private char[] _guessing = Array.Empty<char>();
-        private byte _errorCount = 0;
-        private char[] _usedLetters = new char[7];
-        private bool _isVictory = false;
-        private HangmanDraw _draw = new HangmanDraw();
 
-        // TODO: Should I print smth in constructor?
+        // I think arrays are light-weight and ok here. I have fixed size and can track position.
+        // Collections are heavy-weight and look unnecessary.
+        private char[] _guessing = Array.Empty<char>();
+        private readonly char[] _usedLetters = new char[7];
+        private byte _errorCount = 0;
+        private bool _isVictory = false;
+        private readonly HangmanDraw _draw = new HangmanDraw();
+
         public void Start()
         {
             this._draw.DrawIntro();
@@ -25,11 +28,11 @@ namespace Hangman
             {
                 Console.WriteLine("1. New Game");
                 Console.WriteLine("2. Exit");
-                CatchUserInput();
+                HandleUserInput();
             }
         }
 
-        private void CatchUserInput()
+        private void HandleUserInput()
         {
             Console.Write("Input: ");
             string? userInput = Console.ReadLine();
@@ -53,7 +56,7 @@ namespace Hangman
         {
             this._isVictory = false;
             this._word = LoadWordFromFile();
-            this._guessing = ListUnderscores().ToCharArray();
+            this._guessing = PrepareMinus().ToCharArray();
 
             Console.WriteLine("We think of a word. Try to guess it by suggesting letters");
 
@@ -63,7 +66,7 @@ namespace Hangman
                 UserGuess();
             }
 
-            if (this._isVictory == false)
+            if (!this._isVictory)
             {
                 PrintRound();
                 Console.WriteLine(this._draw.DrawFail());
@@ -76,7 +79,7 @@ namespace Hangman
             return "bitcoin";
         }
 
-        private string ListUnderscores()
+        private string PrepareMinus()
         {
             char[] chars = this._word.ToCharArray();
 
@@ -107,7 +110,7 @@ namespace Hangman
                 Environment.Exit(0);
             }
 
-            CustomContains(Convert.ToChar(input));
+            CustomContains(Convert.ToChar(input.ToLower()));
 
             if (this._word == new string(this._guessing))
             {
@@ -129,7 +132,7 @@ namespace Hangman
                 }
             }
 
-            if (!isContain)
+            if (!isContain && !Array.Exists(this._usedLetters, l => l == input))
             {
                 this._usedLetters[this._errorCount++] = input;
             }
