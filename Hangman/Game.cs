@@ -76,7 +76,19 @@ namespace Hangman
 
         private string LoadWordFromFile()
         {
-            return "bitcoin";
+            try
+            {
+                CustomFileReader cfr = new CustomFileReader("words.txt");
+                return cfr.TakeWord();
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine(ex.Message);
+                Console.WriteLine("Ensure that words.txt file exists in the current execution directory.");
+                Environment.Exit(0);
+            }
+
+            return "hangman";
         }
 
         private string PrepareMinus()
