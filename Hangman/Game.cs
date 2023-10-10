@@ -79,7 +79,7 @@ namespace Hangman
                 PrintRound();
                 Console.WriteLine(this._draw.DrawFail());
                 Console.WriteLine($"Answer: {this.Word}");
-                Console.WriteLine();
+                Console.WriteLine();            
             }
         }
 
