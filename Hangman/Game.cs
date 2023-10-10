@@ -74,12 +74,19 @@ namespace Hangman
                 UserGuess();
             }
 
-            if (!this.IsVictory)
+            if (this.IsVictory)
+            {
+                InitGameValues();
+
+                Console.WriteLine(this._draw.DrawVictory());
+                Console.WriteLine();
+            }
+            else
             {
                 PrintRound();
                 Console.WriteLine(this._draw.DrawFail());
                 Console.WriteLine($"Answer: {this.Word}");
-                Console.WriteLine();            
+                Console.WriteLine();
             }
         }
 
@@ -146,10 +153,10 @@ namespace Hangman
             {
                 this.IsVictory = true;
 
-                InitGameValues();
+                //InitGameValues();
 
-                Console.WriteLine(this._draw.DrawVictory());
-                Console.WriteLine();
+                //Console.WriteLine(this._draw.DrawVictory());
+                //Console.WriteLine();
             }
         }
 
