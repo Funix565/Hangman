@@ -8,16 +8,26 @@ namespace Hangman
 {
     public class Game
     {
-        // TODO: Field initialization or in constructor?
+        private const string WORDS_FILE_NAME = "words.txt";
+        private const byte MAX_ERRORS = 7;
+
+        // Finally, I realized when to use properties and when to use fields.
+        // Properties are good for mutable members because we can debug access by placing breakpoint on `set`.
+        // And of course we can have additional logic there.
+        // Fields are good for constant data.
+
+        // Field initialization or in constructor?
         // -- Doesn't matter: https://stackoverflow.com/a/24558
-        private string _word = "";
+        // -- Use constructor if constructor has parameters.
+        private string Word { get; set; } = "";
 
         // I think arrays are light-weight and ok here. I have fixed size and can track position.
         // Collections are heavy-weight and look unnecessary.
-        private char[] _guessing = Array.Empty<char>();
-        private readonly char[] _usedLetters = new char[7];
-        private byte _errorCount = 0;
-        private bool _isVictory = false;
+        private char[] Guessing { get; set; } = Array.Empty<char>();
+        private byte ErrorCount { get; set; } = 0;
+        private bool IsVictory { get; set; } = false;
+
+        private readonly char[] _usedLetters = new char[MAX_ERRORS];
         private readonly HangmanDraw _draw = new HangmanDraw();
 
         public void Start()
@@ -54,31 +64,39 @@ namespace Hangman
 
         private void PlayGame()
         {
-            this._isVictory = false;
-            this._word = LoadWordFromFile();
-            this._guessing = PrepareMinus().ToCharArray();
+            InitGameValues();
 
             Console.WriteLine("We think of a word. Try to guess it by suggesting letters");
 
-            while (this._errorCount != 6 && !this._isVictory)
+            while (this.ErrorCount != 6 && !this.IsVictory)
             {
                 PrintRound();
                 UserGuess();
             }
 
-            if (!this._isVictory)
+            if (!this.IsVictory)
             {
                 PrintRound();
                 Console.WriteLine(this._draw.DrawFail());
+                Console.WriteLine($"Answer: {this.Word}");
                 Console.WriteLine();
             }
+        }
+
+        private void InitGameValues()
+        {
+            this.IsVictory = false;
+            this.Word = LoadWordFromFile();
+            this.Guessing = PrepareMinus();
+            Array.Clear(this._usedLetters);
+            this.ErrorCount = 0;
         }
 
         private string LoadWordFromFile()
         {
             try
             {
-                CustomFileReader cfr = new CustomFileReader("words.txt");
+                CustomFileReader cfr = new CustomFileReader(WORDS_FILE_NAME);
                 return cfr.TakeWord();
             }
             catch (IOException ex)
@@ -91,23 +109,23 @@ namespace Hangman
             return "hangman";
         }
 
-        private string PrepareMinus()
+        private char[] PrepareMinus()
         {
-            char[] chars = this._word.ToCharArray();
+            char[] chars = this.Word.ToCharArray();
 
             for (int i = 0, n = chars.Length; i < n; ++i)
             {
                 chars[i] = '-';
             }
 
-            return new string(chars);
+            return new string(chars).ToCharArray();
         }
 
         private void PrintRound()
         {
-            Console.WriteLine($"Word: {new string(this._guessing)}");
-            Console.WriteLine($"Errors ({this._errorCount}): {new string(this._usedLetters)}");
-            Console.WriteLine(this._draw.SwitchErrors(this._errorCount));
+            Console.WriteLine($"Word: {new string(this.Guessing)}");
+            Console.WriteLine($"Errors ({this.ErrorCount}): {new string(this._usedLetters)}");
+            Console.WriteLine(this._draw.SwitchErrors(this.ErrorCount));
             Console.WriteLine();
         }
 
@@ -124,9 +142,12 @@ namespace Hangman
 
             CustomContains(Convert.ToChar(input.ToLower()));
 
-            if (this._word == new string(this._guessing))
+            if (this.Word == new string(this.Guessing))
             {
-                this._isVictory = true;
+                this.IsVictory = true;
+
+                InitGameValues();
+
                 Console.WriteLine(this._draw.DrawVictory());
                 Console.WriteLine();
             }
@@ -135,18 +156,18 @@ namespace Hangman
         private void CustomContains(char input)
         {
             bool isContain = false;
-            for (int i = 0, n = this._word.Length; i < n; ++i)
+            for (int i = 0, n = this.Word.Length; i < n; ++i)
             {
-                if (this._word[i] == input)
+                if (this.Word[i] == input)
                 {
                     isContain = true;
-                    this._guessing[i] = input;
+                    this.Guessing[i] = input;
                 }
             }
 
             if (!isContain && !Array.Exists(this._usedLetters, l => l == input))
             {
-                this._usedLetters[this._errorCount++] = input;
+                this._usedLetters[this.ErrorCount++] = input;
             }
         }
     }
